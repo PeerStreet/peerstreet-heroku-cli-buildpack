@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir> <env-dir>
+
+set -eo pipefail
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+VENDOR_DIR="$BUILD_DIR/vendor"
+
+mkdir -p $VENDOR_DIR
+mkdir -p $CACHE_DIR
+
+if [ -d "$CACHE_DIR/heroku-cli" ]; then
+  echo "-----> Using cached Heroku Client."
+else
+  echo "-----> Installing Heroku Client...."
+  curl -s https://cli-assets.heroku.com/heroku-cli/channels/stable/heroku-cli-linux-x64.tar.xz | tar xJ
+  mv heroku-cli-v* $CACHE_DIR/heroku-cli
+fi
+cp -R $CACHE_DIR/heroku-cli $VENDOR_DIR
+
+mkdir -p ${BUILD_DIR}/.profile.d
+echo "export PATH=/app/vendor/heroku-cli/bin:${PATH}" >> ${BUILD_DIR}/.profile.d/heroku-cli.sh
+
+echo "-----> `/${VENDOR_DIR}/heroku-cli/bin/heroku -v`" 
